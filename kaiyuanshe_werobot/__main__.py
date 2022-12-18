@@ -1,12 +1,33 @@
+import hashlib
+
 import werobot
+from fastapi import FastAPI, Request
 
-robot = werobot.WeRoBot(token='weixin')
+from .settings import settings
+
+robot = werobot.WeRoBot(token=settings.token)
+
+app = FastAPI()
 
 
-@robot.text
-def hello_world():
-    return 'Hello World!'
+@robot.handler
+def hello(message):
+    return settings.default_reply
 
 
-def main():
-    robot.run(port=8000)
+@app.get("/")
+async def home(signature, echostr, timestamp, nonce):
+    expected_signature = hashlib.sha1("".join(sorted([settings.token, timestamp, nonce])).encode("utf-8")).hexdigest()
+    if signature == expected_signature:
+        return int(echostr)
+
+
+@app.post("/")
+async def home(request: Request, signature, timestamp):
+    message = robot.parse_message(
+        await request.body(),
+        timestamp=timestamp,
+        nonce=timestamp,
+        msg_signature=signature
+    )
+    return robot.get_encrypted_reply(message)
