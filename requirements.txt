@@ -1,0 +1,6 @@
+# Whereas install_requires requirements are minimal, requirements files often contain an
+# exhaustive listing of pinned versions for the purpose of achieving repeatable
+# installations of a complete environment.
+
+setuptools~=65.5.0
+werobot~=1.13.1
