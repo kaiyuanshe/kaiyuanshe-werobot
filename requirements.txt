@@ -4,3 +4,5 @@
 
 setuptools~=65.5.0
 werobot~=1.13.1
+fastapi
+uvicorn
