@@ -15,4 +15,4 @@ RUN pip install \
 
 EXPOSE 4096
 
-CMD ["uvicorn", "kaiyuanshe_werobot.__main__:app", "--port", "4096"]
+CMD ["uvicorn", "kaiyuanshe_werobot.__main__:app", "--host", "0.0.0.0", "--port", "4096"]
