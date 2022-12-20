@@ -5,7 +5,8 @@ from fastapi import FastAPI, Request
 
 from .settings import settings
 
-robot = werobot.WeRoBot(token=settings.token)
+# todo: encoding_aes_key should be set in env
+robot = werobot.WeRoBot(token=settings.token, app_id=settings.app_id)
 
 app = FastAPI()
 
