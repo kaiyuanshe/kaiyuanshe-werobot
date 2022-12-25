@@ -3,12 +3,18 @@ import hashlib
 import werobot
 from fastapi import FastAPI, Request
 
-from .settings import settings
+from kaiyuanshe_werobot.settings import settings
+from kaiyuanshe_werobot.routers import auth, users
 
 # todo: encoding_aes_key should be set in env
-robot = werobot.WeRoBot(token=settings.token, app_id=settings.app_id)
+robot = werobot.WeRoBot(token=settings.WX_TOKEN, app_id=settings.APP_ID)
 
 app = FastAPI()
+
+app.include_router(auth.router)
+app.include_router(users.router)
+
+app.middleware()
 
 
 @robot.handler
