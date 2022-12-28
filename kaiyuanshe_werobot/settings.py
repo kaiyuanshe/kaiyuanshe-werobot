@@ -7,6 +7,8 @@ class AppSettings(BaseSettings):
     DEFAULT_REPLY: str = "欢迎关注开源社公众号，目前还在开发中，敬请期待！"
     ENCODING_AES_KEY: str = "sss"
     APP_ID: str = "sss"
+    DATABASE_URL: str = "mysql://myuser:mypass:pass@db.host:3306/somedb"
+    PROJECT_NAME: str = "kaiyuanshe-werobot"
 
     SECRET_KEY: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
     ALGORITHM: str = "HS256"

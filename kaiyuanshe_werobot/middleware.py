@@ -1,24 +1,13 @@
 import time
 
 from fastapi import Depends, Request, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import ORJSONResponse
+import jwt
 
 from kaiyuanshe_werobot.settings import settings
-from kaiyuanshe_werobot import schemas
-
-
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
+from kaiyuanshe_werobot.db.database import database
+from kaiyuanshe_werobot import const
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -32,27 +21,27 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+async def auth(request, call_next):
+    url = request.url.path
+    if url in const.WHITE_LIST:
+        return await call_next(request)
+    token = request.headers.get('token')
+    if not token:
+        return ORJSONResponse(status_code=403, content="Forbidden")
     try:
+
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = schemas.TokenData(username=username)
-    except JWTError:
-        raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            return ORJSONResponse(status_code=400, content="invalid token")
+    except jwt.exceptions.PyJWTError:
+        return ORJSONResponse(status_code=400, content="invalid token")
+    return await call_next(request)
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return schemas.UserInDB(**user_dict)
+async def start_up():
+    await database.connect()
+
+
+async def shutdown():
+    await database.disconnect()
