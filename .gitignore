@@ -107,3 +107,7 @@ ENV/
 
 # database
 *.sqlite3
+
+# migrate db
+pyproject.toml
+migrations/

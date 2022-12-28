@@ -2,11 +2,14 @@ import hashlib
 
 import werobot
 from fastapi import FastAPI, Request
+from fastapi.responses import ORJSONResponse
 
-from .settings import settings
+from kaiyuanshe_werobot.settings import settings
+from kaiyuanshe_werobot.api import api
+from kaiyuanshe_werobot.middleware import start_up, shutdown, auth
 
 # todo: encoding_aes_key should be set in env
-robot = werobot.WeRoBot(token=settings.token, app_id=settings.app_id)
+robot = werobot.WeRoBot(token=settings.WX_TOKEN, app_id=settings.APP_ID)
 
 app = FastAPI()
 
@@ -32,3 +35,19 @@ async def home(request: Request, signature, timestamp):
         msg_signature=signature
     )
     return robot.get_encrypted_reply(message)
+
+
+def get_application() -> FastAPI:
+    application = FastAPI(
+        title=settings.PROJECT_NAME,
+        debug=settings.DEBUG,
+        default_response_class=ORJSONResponse
+    )
+    application.include_router(api.api_router)
+    application.add_event_handler("startup", start_up)
+    application.add_event_handler("shutdown", shutdown)
+    application.middleware("http")(auth)
+    return application
+
+
+app = get_application()
